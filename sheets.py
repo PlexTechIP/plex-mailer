@@ -9,6 +9,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from get_emails import get_emails
+from datetime import date
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -49,26 +50,27 @@ def main():
         values = result.get('values', [])
 
         if not values:
-            print('No data found.')
+            print('Check if you have the correct sheet selected.')
             return
 
-        names, emails, count = get_emails(company_names=['Snowflake'], company_names_from_file=False)
+        # Writing
+        emails, count = get_emails(
+            company_names=['Kanda Software'], company_names_from_file=False)
 
-        range_name = f'Shamith!H{len(values) + 1}:H{len(values) + count + 1}'
+        range_name = f'Shamith!D{len(values) + 1}:H{len(values) + count + 1}'
 
-        values = [
-            [email] for role, email in list(emails.values())[0]
-        ]
         body = {
-            'values': values
+            'values': emails
         }
-        res = sheet.values().update(
-            spreadsheetId=SPREADSHEET_ID, range=range_name,
-            valueInputOption='USER_ENTERED', body=body
-        ).execute()
+        sheet.values().update(spreadsheetId=SPREADSHEET_ID, body=body,
+                              valueInputOption='USER_ENTERED', range=range_name).execute()
 
-        print(f"{res.get('updatedCells')} cells updated.")
-        return res
+        range_name = f'Shamith!C{len(values) + 1}:C{len(values) + count + 1}'
+        body = {
+            'values': [[str(date.today())] * (count + 1)]
+        }
+        sheet.values().update(spreadsheetId=SPREADSHEET_ID, body=body,
+                              valueInputOption='USER_ENTERED', range=range_name).execute()
 
     except HttpError as err:
         print(err)

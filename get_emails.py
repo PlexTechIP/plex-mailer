@@ -2,7 +2,6 @@ from get_formats import get_formats
 from splinter import Browser
 from dotenv import load_dotenv
 from time import sleep
-from collections import defaultdict
 import os
 
 from selenium.webdriver.common.keys import Keys
@@ -11,6 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 load_dotenv()
 
 ROLES = ['Senior Software Engineer', 'Project Manager', 'Product Manager']
+
 
 def get_emails(company_names_from_file=True, company_names=[], w=True, format_w=True):
     formats = get_formats(from_file=company_names_from_file,
@@ -30,7 +30,7 @@ def get_emails(company_names_from_file=True, company_names=[], w=True, format_w=
             os.remove("out/emails.txt")
         emails_out = open('out/emails.txt', 'a')
 
-    emails, names = defaultdict(list), defaultdict(list)
+    emails = []
 
     with Browser('chrome', headless=False, incognito=True) as browser:
         browser.visit('https://www.linkedin.com')
@@ -46,7 +46,7 @@ def get_emails(company_names_from_file=True, company_names=[], w=True, format_w=
         submit_button.click()
 
         while not browser.is_element_present_by_xpath('//*[@id="global-nav-typeahead"]/input'):
-            sleep(1) # do captcha
+            sleep(1)  # do captcha
 
         count = 0
         for company in company_names:
@@ -68,18 +68,17 @@ def get_emails(company_names_from_file=True, company_names=[], w=True, format_w=
 
                     name_element = browser.find_by_xpath(name_xpath)
                     text = name_element.text
-                    name = tuple(text.strip().split())
-                    if len(name) > 2:
-                        name = (name[0], name[-1])
-                    if '.' in name[-1] and formats[company][2] != 'last_initial': # if only last initial on LinkedIn
+                    name_original = tuple(text.strip().split())
+                    if len(name_original) > 2:
+                        name_original = (name_original[0], name_original[-1])
+                    # if only last initial on LinkedIn
+                    if '.' in name_original[-1] and formats[company][2] != 'last_initial':
                         continue
-                    
+
                     count += 1
 
                     names_out.write(text + '\n')
-                    names[company].append(name)
-
-                    name = [n.lower() for n in name]
+                    name = [n.lower() for n in name_original]
 
                     first, between, last, end = formats[company]
                     email = ''
@@ -96,6 +95,7 @@ def get_emails(company_names_from_file=True, company_names=[], w=True, format_w=
                     email += end
 
                     emails_out.write(email + '\n')
-                    emails[company].append((role, email))
+                    emails.append(
+                        [company, role, name_original[0], name_original[1], email])
 
-    return dict(names), dict(emails), count
+    return emails, count
