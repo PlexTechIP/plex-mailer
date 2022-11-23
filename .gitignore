@@ -2,3 +2,5 @@
 env/
 in/
 out/
+token.json
+credentials.json

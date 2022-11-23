@@ -12,9 +12,9 @@ load_dotenv()
 
 ROLES = ['Senior Software Engineer', 'Project Manager', 'Product Manager']
 
-def get_emails(company_names_from_file=True, company_names=[], w=True):
+def get_emails(company_names_from_file=True, company_names=[], w=True, format_w=True):
     formats = get_formats(from_file=company_names_from_file,
-                          w=False, names=company_names)
+                          w=format_w, names=company_names)
 
     if company_names_from_file:
         company_names_file = open('in/names.txt', 'r')
@@ -45,6 +45,10 @@ def get_emails(company_names_from_file=True, company_names=[], w=True):
             '//*[@id="main-content"]/section[1]/div/div/form/button')
         submit_button.click()
 
+        while not browser.is_element_present_by_xpath('//*[@id="global-nav-typeahead"]/input'):
+            sleep(1) # do captcha
+
+        count = 0
         for company in company_names:
             for role in ROLES:
                 search_input = browser.find_by_xpath(
@@ -63,26 +67,35 @@ def get_emails(company_names_from_file=True, company_names=[], w=True):
                         continue
 
                     name_element = browser.find_by_xpath(name_xpath)
-                    name = name_element.text.strip().lower()
+                    text = name_element.text
+                    name = tuple(text.strip().split())
+                    if len(name) > 2:
+                        name = (name[0], name[-1])
+                    if '.' in name[-1] and formats[company][2] != 'last_initial': # if only last initial on LinkedIn
+                        continue
+                    
+                    count += 1
 
-                    names_out.write(name + '\n')
+                    names_out.write(text + '\n')
                     names[company].append(name)
+
+                    name = [n.lower() for n in name]
 
                     first, between, last, end = formats[company]
                     email = ''
 
                     if first == 'first':
-                        email += name[:name.index(' ')]
+                        email += name[0]
                     elif first == 'first_initial':
-                        email += name[:1]
+                        email += name[0][:1]
                     email += between
                     if last == 'last':
-                        email += name[name.index(' ') + 1:]
+                        email += name[1]
                     elif last == 'last_initial':
-                        email += name[name.index(' ') + 1:name.index(' ') + 2]
+                        email += name[1][:1]
                     email += end
 
                     emails_out.write(email + '\n')
-                    emails[company].append(email)
+                    emails[company].append((role, email))
 
-    return dict(names), dict(emails)
+    return dict(names), dict(emails), count

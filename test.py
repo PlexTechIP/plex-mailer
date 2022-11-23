@@ -3,7 +3,7 @@ from get_emails import get_emails
 
 # get_formats()
 
-names, emails = get_emails(company_names_from_file=False, company_names=['Snowflake'])
+names, emails = get_emails()
 
 print(names)
 print(emails)

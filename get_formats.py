@@ -1,5 +1,6 @@
 from splinter import Browser
 from time import sleep
+from urllib.parse import quote
 import os
 
 
@@ -18,10 +19,10 @@ def get_formats(from_file=True, w=True, names=[]):
         for name in names:
             res, i = None, 0
             while not res and i < 5:
-                try:
-                    browser.visit(
-                        f'https://www.google.com/search?q={name} email format')
+                browser.visit(
+                    f'https://www.google.com/search?q={quote(name)} email format RocketReach')
 
+                try:
                     if browser.is_element_present_by_xpath('//*[@id="rso"]/div[1]/div/div/div[2]/div/span'):
                         res = browser.find_by_xpath(
                             '//*[@id="rso"]/div[1]/div/div/div[2]/div/span')
@@ -37,14 +38,19 @@ def get_formats(from_file=True, w=True, names=[]):
 
                 except:
                     sleep(1)
-                    i += 5
+                    i += 1
 
             if not res:
                 raise Exception('Timed out')
 
             text = res.value[:res.value.index(',')]
 
-            first = text[text.index('[') + 1:text.index(']')]
+            try:
+                first = text[text.index('[') + 1:text.index(']')]
+            except:
+                print(text)
+                return
+
             rest = text[text.index(']') + 1:]
             between = rest[:rest.index('[')].strip()
             last = rest[rest.index('[') + 1:rest.index(']')]
