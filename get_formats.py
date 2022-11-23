@@ -2,6 +2,7 @@ from splinter import Browser
 from time import sleep
 import os
 
+
 def get_formats(from_file=True, w=True, names=[]):
     if from_file:
         names_file = open('in/names.txt', 'r')
@@ -10,17 +11,16 @@ def get_formats(from_file=True, w=True, names=[]):
     if w:
         if os.path.exists("out/formats.txt"):
             os.remove("out/formats.txt")
-        else:
-            print("The file does not exist")
         out = open('out/formats.txt', 'a')
 
     with Browser('chrome', headless=True, incognito=True) as browser:
         formats = {}
         for name in names:
-            res = None
-            while not res:
+            res, i = None, 0
+            while not res and i < 5:
                 try:
-                    browser.visit(f'https://www.google.com/search?q={name} email format')
+                    browser.visit(
+                        f'https://www.google.com/search?q={name} email format')
 
                     if browser.is_element_present_by_xpath('//*[@id="rso"]/div[1]/div/div/div[2]/div/span'):
                         res = browser.find_by_xpath(
@@ -31,24 +31,27 @@ def get_formats(from_file=True, w=True, names=[]):
                     elif browser.is_element_present_by_xpath('//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span'):
                         res = browser.find_by_xpath(
                             '//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span')
-                    
+
                     if not res:
                         raise Exception('Need to add xpath case')
 
                 except:
                     sleep(1)
-            
+                    i += 5
+
+            if not res:
+                raise Exception('Timed out')
+
             text = res.value[:res.value.index(',')]
 
-            first = text[text.index('['):text.index(']') + 1]
+            first = text[text.index('[') + 1:text.index(']')]
             rest = text[text.index(']') + 1:]
             between = rest[:rest.index('[')].strip()
-            last = rest[rest.index('['):rest.index(']') + 1]
+            last = rest[rest.index('[') + 1:rest.index(']')]
             end = rest[rest.index('@'):rest.index(')')]
 
-            format = first + between + last + end
-            formats[name] = format
+            formats[name] = (first, between, last, end)
             if w:
-                out.write(format + '\n')
+                out.write(f'[{first}]{between}[{last}]{end}\n')
 
-    return res
+    return formats
