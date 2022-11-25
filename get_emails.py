@@ -1,101 +1,105 @@
-from get_formats import get_formats
-from splinter import Browser
-from dotenv import load_dotenv
-from time import sleep
 import os
+import undetected_chromedriver as uc
+from time import sleep
 
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-load_dotenv()
-
-ROLES = ['Senior Software Engineer', 'Project Manager', 'Product Manager']
+from get_formats import get_formats
 
 
-def get_emails(company_names_from_file=True, company_names=[], w=True, format_w=True):
-    formats = get_formats(from_file=company_names_from_file,
-                          w=format_w, names=company_names)
+def get_emails():
+    names_file = open('in/names.txt', 'r')
+    company_names = [line.strip() for line in names_file.readlines()]
 
-    if company_names_from_file:
-        company_names_file = open('in/names.txt', 'r')
-        company_names = [line.strip()
-                         for line in company_names_file.readlines()]
+    formats = get_formats(company_names)
 
-    if w:
-        if os.path.exists("out/names.txt"):
-            os.remove("out/names.txt")
-        names_out = open('out/names.txt', 'a')
-
-        if os.path.exists("out/emails.txt"):
-            os.remove("out/emails.txt")
-        emails_out = open('out/emails.txt', 'a')
+    ROLES = ['Senior Software Engineer', 'Project Manager', 'Product Manager']
 
     emails = []
 
-    with Browser('chrome', headless=False, incognito=True) as browser:
-        browser.visit('https://www.linkedin.com')
+    driver = uc.Chrome()
+    driver.get('https://www.linkedin.com')
 
-        username_input = browser.find_by_id('session_key')
-        username_input.fill(os.getenv('LINKEDIN_USERNAME'))
+    username_input = driver.find_element(By.ID, 'session_key')
+    username_input.send_keys(os.getenv('LINKEDIN_USERNAME'))
 
-        password_input = browser.find_by_id('session_password')
-        password_input.fill(os.getenv('LINKEDIN_PASSWORD'))
+    password_input = driver.find_element(By.ID, 'session_password')
+    password_input.send_keys(os.getenv('LINKEDIN_PASSWORD'))
 
-        submit_button = browser.find_by_xpath(
-            '//*[@id="main-content"]/section[1]/div/div/form/button')
-        submit_button.click()
+    submit_button = driver.find_element(By.XPATH,
+                                        '//*[@id="main-content"]/section[1]/div/div/form/button')
+    submit_button.click()
 
-        while not browser.is_element_present_by_xpath('//*[@id="global-nav-typeahead"]/input'):
-            sleep(1)  # do captcha
+    while not driver.find_elements(By.XPATH, '//*[@id="global-nav-typeahead"]/input'):
+        print('Complete LinkedIn captcha')
+        sleep(5)  # do captcha
 
-        count = 0
-        for company in company_names:
-            for role in ROLES:
-                search_input = browser.find_by_xpath(
-                    '//*[@id="global-nav-typeahead"]/input')
-                search_input.fill(f'{role} {company}')
+    search_input = driver.find_element(By.XPATH,
+                                       '//*[@id="global-nav-typeahead"]/input')
+    search_input.send_keys(f'test\n')
 
-                # pressing enter
-                actions = ActionChains(browser.driver)
-                actions.send_keys(Keys.ENTER)
-                actions.perform()
+    WebDriverWait(driver, 3).until(
+        EC.presence_of_element_located((By.XPATH, '//button[text()="People"]'))
+    )
 
-                for i in range(1, 4):
-                    name_xpath = f'/html/body/div[4]/div[3]/div[2]/div/div[1]/main/div/div/div[1]/div/ul/li[{i}]/div/div/div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]'
+    people_button = driver.find_element(By.XPATH, '//button[text()="People"]')
+    people_button.click()
 
-                    if not browser.is_element_present_by_xpath(name_xpath):
-                        continue
+    sleep(2)
 
-                    name_element = browser.find_by_xpath(name_xpath)
-                    text = name_element.text
-                    name_original = tuple(text.strip().split())
-                    if len(name_original) > 2:
-                        name_original = (name_original[0], name_original[-1])
-                    # if only last initial on LinkedIn
-                    if '.' in name_original[-1] and formats[company][2] != 'last_initial':
-                        continue
+    count = 0
+    for company in company_names:
+        if company not in formats:
+            continue
+        for role in ROLES:
+            search_input.clear()
+            search_input.send_keys(f'{role} {company}\n')
 
-                    count += 1
+            for i in range(1, 4):
+                name_xpath = f'/html/body/div[5]/div[3]/div[2]/div/div[1]/main/div/div/div[2]/div/ul/li[{i}]/div/div/div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]'
 
-                    names_out.write(text + '\n')
-                    name = [n.lower() for n in name_original]
+                try:
+                    WebDriverWait(driver, 3).until(
+                        EC.presence_of_element_located(
+                            (By.XPATH, '//button[text()="People"]'))
+                    )
+                except:
+                    continue
 
-                    first, between, last, end = formats[company]
-                    email = ''
+                if not driver.find_elements(By.XPATH, name_xpath):
+                    continue
 
-                    if first == 'first':
-                        email += name[0]
-                    elif first == 'first_initial':
-                        email += name[0][:1]
-                    email += between
-                    if last == 'last':
-                        email += name[1]
-                    elif last == 'last_initial':
-                        email += name[1][:1]
-                    email += end
+                name_element = driver.find_element(By.XPATH, name_xpath)
+                text = name_element.text
+                name_original = tuple(text.strip().split())
+                if len(name_original) > 2:
+                    name_original = (name_original[0], name_original[-1])
+                # if only last initial on LinkedIn
+                if '.' in name_original[-1] and formats[company][2] != 'last_initial':
+                    continue
 
-                    emails_out.write(email + '\n')
-                    emails.append(
-                        [company, role, name_original[0], name_original[1], email])
+                count += 1
 
+                name = [n.lower() for n in name_original]
+
+                first, between, last, end = formats[company]
+                email = ''
+
+                if first == 'first':
+                    email += name[0]
+                elif first == 'first_initial':
+                    email += name[0][:1]
+                email += between
+                if last == 'last':
+                    email += name[1]
+                elif last == 'last_initial':
+                    email += name[1][:1]
+                email += end
+
+                emails.append(
+                    [company, role, name_original[0], name_original[1], email])
+
+    driver.close()
     return emails, count

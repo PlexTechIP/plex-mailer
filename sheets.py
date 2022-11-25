@@ -1,6 +1,7 @@
 from __future__ import print_function
-
-import os.path
+from dotenv import load_dotenv
+from datetime import date
+import os
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -9,18 +10,13 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from get_emails import get_emails
-from datetime import date
 
-# If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-# The ID and range of a sample spreadsheet.
-SPREADSHEET_ID = '1uEENprgXDYdtCwqNoUdiPuVaZWIXWUy9SlpiGapy4SE'
+load_dotenv()
 
+def sheets():
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+    SPREADSHEET_ID = '1uEENprgXDYdtCwqNoUdiPuVaZWIXWUy9SlpiGapy4SE'
 
-def main():
-    """Shows basic usage of the Sheets API.
-    Prints values from a sample spreadsheet.
-    """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -50,31 +46,27 @@ def main():
         values = result.get('values', [])
 
         if not values:
-            print('Check if you have the correct sheet selected.')
-            return
+            raise Exception('Check if you have the correct sheet selected.')
 
-        # Writing
-        emails, count = get_emails(
-            company_names=['Kanda Software'], company_names_from_file=False)
+        emails, count = get_emails()
 
-        range_name = f'Shamith!D{len(values) + 1}:H{len(values) + count + 1}'
-
+        emails_range = f'Shamith!D{len(values) + 1}:H{len(values) + count + 1}'
+        date_range = f'Shamith!C{len(values) + 1}:C{len(values) + count + 1}'
+        data = [
+            {
+                'range': emails_range,
+                'values': emails
+            },
+            {
+                'range': date_range,
+                'values': [[str(date.today())]] * count
+            }
+        ]
         body = {
-            'values': emails
+            'valueInputOption': 'USER_ENTERED',
+            'data': data
         }
-        sheet.values().update(spreadsheetId=SPREADSHEET_ID, body=body,
-                              valueInputOption='USER_ENTERED', range=range_name).execute()
-
-        range_name = f'Shamith!C{len(values) + 1}:C{len(values) + count + 1}'
-        body = {
-            'values': [[str(date.today())] * (count + 1)]
-        }
-        sheet.values().update(spreadsheetId=SPREADSHEET_ID, body=body,
-                              valueInputOption='USER_ENTERED', range=range_name).execute()
+        sheet.values().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
     except HttpError as err:
         print(err)
-
-
-if __name__ == '__main__':
-    main()

@@ -1,63 +1,100 @@
-from splinter import Browser
+import os
+import undetected_chromedriver as uc
 from time import sleep
 from urllib.parse import quote
-import os
+
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 
 
-def get_formats(from_file=True, w=True, names=[]):
-    if from_file:
-        names_file = open('in/names.txt', 'r')
-        names = [line.strip() for line in names_file.readlines()]
+def get_formats(names):
+    options = uc.ChromeOptions()
+    # options.add_argument('--headless')
+    driver = uc.Chrome(options=options)
 
-    if w:
-        if os.path.exists("out/formats.txt"):
-            os.remove("out/formats.txt")
-        out = open('out/formats.txt', 'a')
+    driver.get('https://accounts.google.com')
+    username_input = driver.find_element(By.ID, 'identifierId')
+    username_input.send_keys(os.getenv('GOOGLE_USERNAME'))
 
-    with Browser('chrome', headless=True, incognito=True) as browser:
-        formats = {}
-        for name in names:
-            res, i = None, 0
-            while not res and i < 5:
-                browser.visit(
-                    f'https://www.google.com/search?q={quote(name)} email format RocketReach')
+    next_button = driver.find_element(
+        By.XPATH, '//*[@id="identifierNext"]/div/button/span')
+    next_button.click()
 
-                try:
-                    if browser.is_element_present_by_xpath('//*[@id="rso"]/div[1]/div/div/div[2]/div/span'):
-                        res = browser.find_by_xpath(
-                            '//*[@id="rso"]/div[1]/div/div/div[2]/div/span')
-                    elif browser.is_element_present_by_xpath('//*[@id="rso"]/div[1]/div/div/div[1]/div/div/div[2]/div/span'):
-                        res = browser.find_by_xpath(
-                            '//*[@id="rso"]/div[1]/div/div/div[1]/div/div/div[2]/div/span')
-                    elif browser.is_element_present_by_xpath('//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span'):
-                        res = browser.find_by_xpath(
-                            '//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span')
+    while True:
+        try:
+            password_input = driver.find_element(
+                By.XPATH, '//*[@id="password"]/div[1]/div/div[1]/input')
+            password_input.send_keys(os.getenv('GOOGLE_PASSWORD'))
+            break
+        except:
+            pass
 
-                    if not res:
-                        raise Exception('Need to add xpath case')
+    next_button = driver.find_element(
+        By.XPATH, '//*[@id="passwordNext"]/div/button/span')
+    next_button.click()
 
-                except:
-                    sleep(1)
-                    i += 1
+    formats = {}
+    for name in names:
+        res, i = None, 0
+        driver.get(
+            f'https://www.google.com/search?q={quote(name)} email format')
 
-            if not res:
-                raise Exception('Timed out')
+        j = 0
+        while 'sorry' in driver.current_url:
+            if driver.find_elements(By.XPATH, '//*[contains(text(), "Submit")]'):
+                print('Complete Google captcha')
+                sleep(5)
+            else:
+                print(f'Google captcha try #{j}', end='\r')
+                actions = ActionChains(driver)
+                actions.send_keys(Keys.TAB)
+                actions.send_keys(Keys.SPACE)
+                actions.perform()
+                j += 1
 
-            text = res.value[:res.value.index(',')]
-
+        while not res and i < 5:
             try:
-                first = text[text.index('[') + 1:text.index(']')]
+                if driver.find_elements(By.XPATH, '//*[@id="rso"]/div[1]/div/div/div[2]/div/span'):
+                    res = driver.find_element(By.XPATH,
+                                              '//*[@id="rso"]/div[1]/div/div/div[2]/div/span')
+                elif driver.find_elements(By.XPATH, '//*[@id="rso"]/div[1]/div/div/div[1]/div/div/div[2]/div/span'):
+                    res = driver.find_element(By.XPATH,
+                                              '//*[@id="rso"]/div[1]/div/div/div[1]/div/div/div[2]/div/span')
+                elif driver.find_elements(By.XPATH, '//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span'):
+                    res = driver.find_element(By.XPATH,
+                                              '//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span')
+
+                if not res:
+                    raise Exception('Need to add xpath case')
+
             except:
-                print(text)
-                return
+                sleep(1)
+                i += 1
 
+        if not res:
+            print("Timeout error: " + name)
+            continue
+
+        text = None
+        try:
+            text = res.text[:res.text.index(')') + 1]
+            first = text[text.index('[') + 1:text.index(']')]
             rest = text[text.index(']') + 1:]
-            between = rest[:rest.index('[')].strip()
-            last = rest[rest.index('[') + 1:rest.index(']')]
+            try:
+                between = rest[:rest.index('[')].strip()
+                last = rest[rest.index('[') + 1:rest.index(']')]
+            except:
+                between = last = ''
             end = rest[rest.index('@'):rest.index(')')]
+        except:
+            if text is not None:
+                print("Formatting error: " + text)
+            else:
+                print("Formatting error: " + name)
+            continue
 
-            formats[name] = (first, between, last, end)
-            if w:
-                out.write(f'[{first}]{between}[{last}]{end}\n')
+        formats[name] = (first, between, last, end)
 
+    driver.close()
     return formats

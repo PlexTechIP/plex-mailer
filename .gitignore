@@ -4,3 +4,4 @@ in/
 out/
 token.json
 credentials.json
+.vscode/
