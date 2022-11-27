@@ -1,4 +1,5 @@
 import os
+import csv
 import undetected_chromedriver as uc
 from time import sleep
 from urllib.parse import quote
@@ -34,6 +35,9 @@ def get_formats(names):
         By.XPATH, '//*[@id="passwordNext"]/div/button/span')
     next_button.click()
 
+    f = open('out/formats.csv', 'w')
+    writer = csv.writer(f)
+
     formats = {}
     for name in names:
         res, i = None, 0
@@ -42,10 +46,11 @@ def get_formats(names):
 
         j = 0
         while 'sorry' in driver.current_url:
-            if driver.find_elements(By.XPATH, '//*[contains(text(), "Submit")]'):
+            if j > 10:
                 print('Complete Google captcha')
-                sleep(5)
+                sleep(10)
             else:
+                sleep(1)
                 print(f'Google captcha try #{j}', end='\r')
                 actions = ActionChains(driver)
                 actions.send_keys(Keys.TAB)
@@ -95,6 +100,8 @@ def get_formats(names):
             continue
 
         formats[name] = (first, between, last, end)
+        writer.writerow([name, first, between, last, end])
 
+    f.close()
     driver.close()
     return formats

@@ -1,4 +1,5 @@
 import os
+import csv
 import undetected_chromedriver as uc
 from time import sleep
 
@@ -49,6 +50,9 @@ def get_emails():
 
     sleep(2)
 
+    f = open('out/emails.csv', 'w')
+    writer = csv.writer(f)
+
     count = 0
     for company in company_names:
         if company not in formats:
@@ -97,9 +101,11 @@ def get_emails():
                 elif last == 'last_initial':
                     email += name[1][:1]
                 email += end
+                
+                row = [company, role, name_original[0], name_original[1], email]
+                emails.append(row)
+                writer.writerow(row)
 
-                emails.append(
-                    [company, role, name_original[0], name_original[1], email])
-
+    f.close()
     driver.close()
     return emails, count
