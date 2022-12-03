@@ -67,7 +67,6 @@ def get_formats(names):
                 elif driver.find_elements(By.XPATH, '//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span'):
                     res = driver.find_element(By.XPATH,
                                               '//*[@id="rso"]/div[1]/div/block-component/div/div[1]/div/div/div/div/div[1]/div/div/div/div/div[1]/div/span/span')
-
                 if not res:
                     raise Exception('Need to add xpath case')
 

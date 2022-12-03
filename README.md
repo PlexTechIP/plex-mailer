@@ -23,6 +23,11 @@ In a terminal window, run:
 `pip install -r requirements.txt`
 
 ## 3. Environment Setup 
+Create two directories, `in` and `out`, by running:
+
+`mkdir in`
+
+`mkdir out`
 
 Create a `.env` file by running:
 
