@@ -14,8 +14,8 @@ from get_emails import get_emails
 load_dotenv()
 
 # EDIT IF NEEDED
-DATE = date(2022, 11, 28)
-SPREADSHEET_ID = '1b1ntUFHoT3rJFqelbjrRODS8_FQ0o7jwEqZCjgJxikE'
+DATE = date(2022, 11, 28) # year, month, day
+SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 
 def sheets():
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
