@@ -10,7 +10,7 @@ There are a few things that you need to configure before running the program, so
 
 ## 1. Prerequisites
 
-In order to run Plexmailer
+In order to run Plexmailer, you need to have Python 3 installed.
 
 ## 2. Installation
 
