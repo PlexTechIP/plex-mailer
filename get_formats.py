@@ -8,11 +8,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 
-
 def get_formats(names):
-    options = uc.ChromeOptions()
-    # options.add_argument('--headless')
-    driver = uc.Chrome(options=options)
+    driver = uc.Chrome(version_main=107)
 
     driver.get('https://accounts.google.com')
     username_input = driver.find_element(By.ID, 'identifierId')
@@ -86,11 +83,13 @@ def get_formats(names):
         text = None
         try:
             if 'formats:' in res.text:
-                text = res.text[res.text.index('.') + 2:res.text.index('(') - 1]
+                text = res.text[res.text.index(
+                    '.') + 2:res.text.index('(') - 1]
                 try:
                     first = text[:text.index(' ')]
                     rest = text[text.index(' ') + 1:]
-                    between = rest[rest.index("'") + 1:rest.index('l') - 2].strip()
+                    between = rest[rest.index(
+                        "'") + 1:rest.index('l') - 2].strip()
                     last = rest[rest.index('l'):rest.index('@')]
                     end = text[text.index('@'):]
                 except:

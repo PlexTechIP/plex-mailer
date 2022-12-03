@@ -14,9 +14,10 @@ from get_emails import get_emails
 load_dotenv()
 
 # EDIT IF NEEDED
-DATE = date(2022, 11, 28) # year, month, day
+DATE = date(2022, 11, 28)  # year, month, day
 SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 SHEET_NAME = os.getenv('SHEET_NAME')
+
 
 def sheets():
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -75,5 +76,6 @@ def sheets():
     except Exception as e:
         print(e)
         print('Error; emails stored in out/emails.csv')
+
 
 sheets()

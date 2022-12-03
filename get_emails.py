@@ -13,6 +13,7 @@ from get_formats import get_formats
 ROLES = ['Senior Software Engineer',
          'Project Manager', 'Product Manager', 'CEO']
 
+
 def get_emails():
     names_file = open('in/names.txt', 'r')
     company_names = [line.strip() for line in names_file.readlines()]
@@ -21,7 +22,7 @@ def get_emails():
 
     emails = []
 
-    driver = uc.Chrome()
+    driver = uc.Chrome(version_main=107)
     driver.get('https://www.linkedin.com')
 
     username_input = driver.find_element(By.ID, 'session_key')
