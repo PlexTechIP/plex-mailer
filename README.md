@@ -22,7 +22,7 @@ In a terminal window, run:
 
 `pip install -r requirements.txt`
 
-## 3. Environment Setup
+## 3. Environment Setup 
 
 Create a `.env` file by running:
 
