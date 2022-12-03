@@ -16,6 +16,7 @@ load_dotenv()
 # EDIT IF NEEDED
 DATE = date(2022, 11, 28) # year, month, day
 SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
+SHEET_NAME = os.getenv('SHEET_NAME')
 
 def sheets():
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -40,7 +41,7 @@ def sheets():
 
     try:
         service = build('sheets', 'v4', credentials=creds)
-        range_name = 'Shamith!H:H'
+        range_name = f'{SHEET_NAME}!H:H'
 
         # Reading
         sheet = service.spreadsheets()
@@ -53,8 +54,8 @@ def sheets():
 
         emails, count = get_emails()
 
-        emails_range = f'Shamith!D{len(values) + 1}:H{len(values) + count + 1}'
-        date_range = f'Shamith!C{len(values) + 1}:C{len(values) + count + 1}'
+        emails_range = f'{SHEET_NAME}!D{len(values) + 1}:H{len(values) + count + 1}'
+        date_range = f'{SHEET_NAME}!C{len(values) + 1}:C{len(values) + count + 1}'
         data = [
             {
                 'range': emails_range,

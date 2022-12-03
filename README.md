@@ -1,6 +1,12 @@
 # Plexmailer
 
-This software automates the client sourcing software
+This software automates the client sourcing process for PlexTech by webscraping email formats from Google and emails from LinkedIn.
+
+The program may find some invalid emails, so be sure to hover over all the emails in the spreadsheet and filter out the ones with the default profile picture.
+
+**Read through this whole README or else you might not get the right results.**
+
+There are a few things that you need to configure before running the program, so do not skim through the instructions.
 
 ## 1. Prerequisites
 
@@ -30,6 +36,7 @@ LINKEDIN_PASSWORD=<your_linkedin_password>
 GOOGLE_USERNAME=<your_gmail_username>
 GOOGLE_PASSWORD=<your_gmail_password>
 SPREADSHEET_ID=<google_sheet_id>
+SHEET_NAME=<google_sheet_name>
 ```
 
 In order to get the `SPREADSHEET_ID` field, go to whichever Google Sheet you want to populate (e.g. the master client sourcing spreadsheet) and look at the URL.
@@ -40,6 +47,13 @@ The URL will come in this format:
 
 Copy the ID from the URL as shown above and paste into the `.env` file.
 
+For the `SHEET_NAME` field, input the name of the specific *sheet* that you're on, not the name of the entire document.
+
+For example, if you're using the master spreadsheet, `SHEET_NAME` will be the PM's name, NOT `[MASTER] PlexTech Client Sourcing`.
+
+### IMPORTANT:
+
+I recommend making a copy of the master client sourcing spreadsheet and using your copy with this program because if others are writing to the master spreadsheet, it may cause unexpected behavior.
 
 ## 4. Additional configuration (optional)
 
