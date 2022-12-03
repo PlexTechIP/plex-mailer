@@ -13,9 +13,12 @@ from get_emails import get_emails
 
 load_dotenv()
 
+# EDIT IF NEEDED
+DATE = date(2022, 11, 28)
+SPREADSHEET_ID = '1b1ntUFHoT3rJFqelbjrRODS8_FQ0o7jwEqZCjgJxikE'
+
 def sheets():
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-    SPREADSHEET_ID = '1uEENprgXDYdtCwqNoUdiPuVaZWIXWUy9SlpiGapy4SE'
 
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -59,7 +62,7 @@ def sheets():
             },
             {
                 'range': date_range,
-                'values': [[str(date.today())]] * count
+                'values': [[f'{DATE.month}/{DATE.day}/{DATE.year}']] * count
             }
         ]
         body = {
@@ -68,5 +71,6 @@ def sheets():
         }
         sheet.values().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
-    except HttpError as err:
-        print(err)
+    except Exception as e:
+        print(e)
+        print('Error; emails stored in out/emails.csv')

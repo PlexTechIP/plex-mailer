@@ -39,10 +39,11 @@ def get_formats(names):
     writer = csv.writer(f)
 
     formats = {}
+    not_found = []
     for name in names:
         res, i = None, 0
         driver.get(
-            f'https://www.google.com/search?q={quote(name)} email format')
+            f'https://www.google.com/search?q={quote(name)} email format RocketReach')
 
         j = 0
         while 'sorry' in driver.current_url:
@@ -79,28 +80,48 @@ def get_formats(names):
 
         if not res:
             print("Timeout error: " + name)
+            not_found.append(name)
             continue
 
         text = None
         try:
-            text = res.text[:res.text.index(')') + 1]
-            first = text[text.index('[') + 1:text.index(']')]
-            rest = text[text.index(']') + 1:]
-            try:
-                between = rest[:rest.index('[')].strip()
-                last = rest[rest.index('[') + 1:rest.index(']')]
-            except:
-                between = last = ''
-            end = rest[rest.index('@'):rest.index(')')]
+            if 'formats:' in res.text:
+                text = res.text[res.text.index('.') + 2:res.text.index('(') - 1]
+                try:
+                    first = text[:text.index(' ')]
+                    rest = text[text.index(' ') + 1:]
+                    between = rest[rest.index("'") + 1:rest.index('l') - 2].strip()
+                    last = rest[rest.index('l'):rest.index('@')]
+                    end = text[text.index('@'):]
+                except:
+                    first = text[:text.index('@')]
+                    between = last = ''
+                    end = text[text.index('@'):]
+
+            else:
+                text = res.text[:res.text.index(')') + 1]
+                first = text[text.index('[') + 1:text.index(']')]
+                rest = text[text.index(']') + 1:]
+                try:
+                    between = rest[:rest.index('[')].strip()
+                    last = rest[rest.index('[') + 1:rest.index(']')]
+                except:
+                    between = last = ''
+                end = rest[rest.index('@'):rest.index(')')]
         except:
             if text is not None:
                 print("Formatting error: " + text)
             else:
                 print("Formatting error: " + name)
+            not_found.append(name)
             continue
 
         formats[name] = (first, between, last, end)
         writer.writerow([name, first, between, last, end])
+
+    with open('out/not_found.txt', 'w') as f:
+        for name in not_found:
+            f.write(name + '\n')
 
     f.close()
     driver.close()

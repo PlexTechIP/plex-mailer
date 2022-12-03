@@ -9,14 +9,16 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from get_formats import get_formats
 
+# EDIT IF NEEDED
+ROLES = ['Senior Software Engineer',
+         'Project Manager', 'Product Manager', 'CEO']
+
 
 def get_emails():
     names_file = open('in/names.txt', 'r')
     company_names = [line.strip() for line in names_file.readlines()]
 
     formats = get_formats(company_names)
-
-    ROLES = ['Senior Software Engineer', 'Project Manager', 'Product Manager']
 
     emails = []
 
@@ -54,15 +56,13 @@ def get_emails():
     writer = csv.writer(f)
 
     count = 0
-    for company in company_names:
-        if company not in formats:
-            continue
+    for company in formats:
         for role in ROLES:
             search_input.clear()
             search_input.send_keys(f'{role} {company}\n')
 
             for i in range(1, 4):
-                name_xpath = f'/html/body/div[5]/div[3]/div[2]/div/div[1]/main/div/div/div[2]/div/ul/li[{i}]/div/div/div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]'
+                name_xpath = f'/html/body/div[4]/div[3]/div[2]/div/div[1]/main/div/div/div[2]/div/ul/li[{i}]/div/div/div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]'
 
                 try:
                     WebDriverWait(driver, 3).until(
@@ -70,9 +70,11 @@ def get_emails():
                             (By.XPATH, '//button[text()="People"]'))
                     )
                 except:
-                    continue
+                    print('Timeout')
+                    break
 
                 if not driver.find_elements(By.XPATH, name_xpath):
+                    print('No results found')
                     continue
 
                 name_element = driver.find_element(By.XPATH, name_xpath)
@@ -82,6 +84,7 @@ def get_emails():
                     name_original = (name_original[0], name_original[-1])
                 # if only last initial on LinkedIn
                 if '.' in name_original[-1] and formats[company][2] != 'last_initial':
+                    print('No last name')
                     continue
 
                 count += 1
@@ -101,8 +104,9 @@ def get_emails():
                 elif last == 'last_initial':
                     email += name[1][:1]
                 email += end
-                
-                row = [company, role, name_original[0], name_original[1], email]
+
+                row = [company, role, name_original[0],
+                       name_original[1], email]
                 emails.append(row)
                 writer.writerow(row)
 
