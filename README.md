@@ -4,6 +4,8 @@ This software automates the client sourcing process for PlexTech by webscraping 
 
 The program may find some invalid emails, so be sure to hover over all the emails in the spreadsheet and filter out the ones with the default profile picture.
 
+You also may need to complete some captchas as `get_formats.py` runs, so keep an eye on the Chrome tab.
+
 **Read through this whole README or else you might not get the right results.**
 
 There are a few things that you need to configure before running the program, so do not skim through the instructions.

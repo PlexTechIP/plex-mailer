@@ -37,6 +37,7 @@ def get_formats(names):
 
     formats = {}
     not_found = []
+    
     for name in names:
         res, i = None, 0
         driver.get(
@@ -44,9 +45,9 @@ def get_formats(names):
 
         j = 0
         while 'sorry' in driver.current_url:
-            if j > 10:
+            if j > 5:
                 print('Complete Google captcha')
-                sleep(10)
+                sleep(15)
             else:
                 sleep(1)
                 print(f'Google captcha try #{j}', end='\r')
@@ -123,4 +124,5 @@ def get_formats(names):
 
     f.close()
     driver.close()
+
     return formats
