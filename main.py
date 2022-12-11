@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from datetime import date
 # from plyer import notification
 import os
+from traceback import print_exc
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -15,7 +16,7 @@ from get_emails import get_emails
 load_dotenv()
 
 # EDIT IF NEEDED
-DATE = date(2022, 12, 5)  # year, month, day
+DATE = date(2022, 12, 14)  # year, month, day
 SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 SHEET_NAME = os.getenv('SHEET_NAME')
 
@@ -79,7 +80,7 @@ try:
     sheet.values().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
 except Exception as e:
-    print(e)
+    print_exc(e)
     print('Error; emails stored in out/emails.csv')
 
 
