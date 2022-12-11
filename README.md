@@ -46,7 +46,7 @@ SPREADSHEET_ID=<google_sheet_id>
 SHEET_NAME=<google_sheet_name>
 ```
 
-I recommend using your personal GMail account so that you don't have to log in through CalNet. This login is just so that we can bypass CAPTCHA.
+I recommend using your personal GMail account so that you don't have to log in through CalNet. This login is just so that we can bypass CAPTCHA, NOT for the Google Sheets API.
 
 In order to get the `SPREADSHEET_ID` field, go to whichever Google Sheet you want to populate (e.g. the master client sourcing spreadsheet) and look at the URL.
 
@@ -86,6 +86,8 @@ Netflix
 In a terminal window, run:
 
 `python3 main.py`
+
+The first time you run this, it should open a browser window asking you to sign into Google. Use whichever account your Google sheet is owned by.
 
 If any email formats are unable to be found, they will be added to `out/not_found.txt`.
 
