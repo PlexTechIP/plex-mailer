@@ -1,6 +1,7 @@
 from __future__ import print_function
 from dotenv import load_dotenv
 from datetime import date
+# from plyer import notification
 import os
 
 from google.auth.transport.requests import Request
@@ -19,63 +20,72 @@ SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 SHEET_NAME = os.getenv('SHEET_NAME')
 
 
-def sheets():
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
+creds = None
+# The file token.json stores the user's access and refresh tokens, and is
+# created automatically when the authorization flow completes for the first
+# time.
+if os.path.exists('token.json'):
+    creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+# If there are no (valid) credentials available, let the user log in.
+if not creds or not creds.valid:
+    if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+    else:
+        try:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+            'credentials.json', SCOPES)
+        except:
+            get_emails()
+            raise FileNotFoundError('credentials.json not found, emails saved in out/emails.csv')
 
-    try:
-        service = build('sheets', 'v4', credentials=creds)
-        range_name = f'{SHEET_NAME}!H:H'
+        creds = flow.run_local_server(port=0)
+    # Save the credentials for the next run
+    with open('token.json', 'w') as token:
+        token.write(creds.to_json())
 
-        # Reading
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-                                    range=range_name).execute()
-        values = result.get('values', [])
+try:
+    service = build('sheets', 'v4', credentials=creds)
+    range_name = f'{SHEET_NAME}!H:H'
 
-        if not values:
-            raise Exception('Check if you have the correct sheet selected.')
+    # Reading
+    sheet = service.spreadsheets()
+    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                range=range_name).execute()
+    values = result.get('values', [])
 
-        emails, count = get_emails()
+    if not values:
+        raise Exception('Check if you have the correct sheet selected.')
 
-        emails_range = f'{SHEET_NAME}!D{len(values) + 1}:H{len(values) + count + 1}'
-        date_range = f'{SHEET_NAME}!C{len(values) + 1}:C{len(values) + count + 1}'
-        data = [
-            {
-                'range': emails_range,
-                'values': emails
-            },
-            {
-                'range': date_range,
-                'values': [[f'{DATE.month}/{DATE.day}/{DATE.year}']] * count
-            }
-        ]
-        body = {
-            'valueInputOption': 'USER_ENTERED',
-            'data': data
+    emails, count = get_emails()
+
+    emails_range = f'{SHEET_NAME}!D{len(values) + 1}:H{len(values) + count + 1}'
+    date_range = f'{SHEET_NAME}!C{len(values) + 1}:C{len(values) + count + 1}'
+    data = [
+        {
+            'range': emails_range,
+            'values': emails
+        },
+        {
+            'range': date_range,
+            'values': [[f'{DATE.month}/{DATE.day}/{DATE.year}']] * count
         }
-        sheet.values().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
+    ]
+    body = {
+        'valueInputOption': 'USER_ENTERED',
+        'data': data
+    }
+    sheet.values().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=body).execute()
 
-    except Exception as e:
-        print(e)
-        print('Error; emails stored in out/emails.csv')
+except Exception as e:
+    print(e)
+    print('Error; emails stored in out/emails.csv')
 
 
-sheets()
+# notification.notify(
+#     title = 'Plexmailer',
+#     message = 'Done!',
+#     app_icon = None,
+#     timeout = 10
+# )

@@ -3,6 +3,7 @@ import csv
 import undetected_chromedriver as uc
 from time import sleep
 from urllib.parse import quote
+from plyer import notification
 
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -46,7 +47,11 @@ def get_formats(names):
         j = 0
         while 'sorry' in driver.current_url:
             if j > 5:
-                print('Complete Google captcha')
+                # notification.notify(
+                #     title = 'Plexmailer',
+                #     message = 'Complete Google Captcha',
+                #     timeout = 10
+                # )
                 sleep(15)
             else:
                 sleep(1)

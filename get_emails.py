@@ -2,6 +2,7 @@ import os
 import csv
 import undetected_chromedriver as uc
 from time import sleep
+from plyer import notification
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -16,8 +17,22 @@ ROLES = ['Senior Software Engineer',
 
 def get_emails():
     names_file = open('in/names.txt', 'r')
-    company_names = [line.strip() for line in names_file.readlines()]
+    company_names = []
+    start = False
+    lines = names_file.readlines()
 
+    if 'START\n' not in lines:
+        company_names = [line.strip() for line in lines]
+    else:
+        for line in lines:
+            line = line.strip()
+            if line == 'STOP':
+                break
+            if start and line:
+                company_names.append(line)
+            if line == 'START':
+                start = True
+        
     formats = get_formats(company_names)
 
     emails = []
@@ -36,7 +51,11 @@ def get_emails():
     submit_button.click()
 
     while not driver.find_elements(By.XPATH, '//*[@id="global-nav-typeahead"]/input'):
-        print('Complete LinkedIn captcha')
+        # notification.notify(
+        #     title = 'Plexmailer',
+        #     message = 'Complete LinkedIn Captcha',
+        #     timeout = 10
+        # )
         sleep(5)  # do captcha
 
     search_input = driver.find_element(By.XPATH,
