@@ -46,6 +46,8 @@ SPREADSHEET_ID=<google_sheet_id>
 SHEET_NAME=<google_sheet_name>
 ```
 
+I recommend using your personal GMail account so that you don't have to log in through CalNet. This login is just so that we can bypass CAPTCHA.
+
 In order to get the `SPREADSHEET_ID` field, go to whichever Google Sheet you want to populate (e.g. the master client sourcing spreadsheet) and look at the URL.
 
 The URL will come in this format:
