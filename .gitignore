@@ -6,3 +6,4 @@ token.json
 credentials.json
 .vscode/
 misc/
+__pycache__/

@@ -123,7 +123,7 @@ def get_formats(names):
         formats[name] = (first, between, last, end)
         writer.writerow([name, first, between, last, end])
 
-    with open('out/not_found.txt', 'w') as f:
+    with open('out/not_found.txt', 'a') as f:
         for name in not_found:
             f.write(name + '\n')
 

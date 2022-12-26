@@ -62,7 +62,7 @@ def get_emails():
                                        '//*[@id="global-nav-typeahead"]/input')
     search_input.send_keys(f'test\n')
 
-    WebDriverWait(driver, 3).until(
+    WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//button[text()="People"]'))
     )
 
@@ -97,7 +97,7 @@ def get_emails():
                     continue
 
                 name_element = driver.find_element(By.XPATH, name_xpath)
-                text = name_element.text
+                text = name_element.text.lower()
                 name_original = tuple(text.strip().split())
                 if len(name_original) > 2:
                     name_original = (name_original[0], name_original[-1])
