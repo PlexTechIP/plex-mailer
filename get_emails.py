@@ -82,15 +82,22 @@ def get_emails():
 
             for i in range(1, 4):
                 name_xpath = f'/html/body/div[4]/div[3]/div[2]/div/div[1]/main/div/div/div[2]/div/ul/li[{i}]/div/div/div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]'
+                other_name_xpath = f'/html/body/div[4]/div[3]/div[2]/div/div[1]/main/div/div/div[4]/div/ul/li{i}/div/div/div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]'
 
                 try:
                     WebDriverWait(driver, 3).until(
                         EC.presence_of_element_located(
-                            (By.XPATH, '//button[text()="People"]'))
-                    )
+                            (By.XPATH, name_xpath)
+                    ))
                 except:
-                    print('Timeout')
-                    break
+                    try:
+                        WebDriverWait(driver, 3).until(
+                            EC.presence_of_element_located(
+                                (By.XPATH, other_name_xpath)
+                        ))
+                    except:
+                        print('Timeout')
+                        break
 
                 if not driver.find_elements(By.XPATH, name_xpath):
                     print('No results found')
